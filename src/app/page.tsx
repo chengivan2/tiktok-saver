@@ -28,7 +28,7 @@ export default function Home() {
     if (isLoading) {
       interval = setInterval(() => {
         setLoadingStep((prev) => (prev + 1) % loadingMessages.length);
-      }, 1500);
+      }, 3000);
     } else {
       setLoadingStep(0);
     }
@@ -230,16 +230,16 @@ export default function Home() {
                     transition={{ duration: 0.9, repeat: Infinity, ease: "linear" }}
                   />
                   <span className="text-sm font-bold text-white uppercase tracking-wider whitespace-nowrap">
-                    {loadingMessages[loadingStep].split(" ").map((word, idx) => (
+                    {loadingMessages[loadingStep].split(" ").map((word, idx, arr) => (
                       <span key={idx}>
-                        {word === "video" ? (
+                        {idx === arr.length - 1 ? (
                           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00f2fe] to-[#fe0979]">
                             {word}
                           </span>
                         ) : (
                           word
                         )}
-                        {idx < loadingMessages[loadingStep].split(" ").length - 1 ? " " : ""}
+                        {idx < arr.length - 1 ? " " : ""}
                       </span>
                     ))}
                     ...
