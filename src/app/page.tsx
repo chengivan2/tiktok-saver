@@ -15,6 +15,9 @@ interface VideoResult {
 }
 export default function Home() {
   const [url, setUrl] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState<VideoResult | null>(null);
+  const [error, setError] = useState("");
   const [isPasted, setIsPasted] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
 
