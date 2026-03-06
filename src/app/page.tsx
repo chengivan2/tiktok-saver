@@ -306,9 +306,7 @@ export default function Home() {
                   <div className="mt-6 flex flex-col sm:flex-row gap-3">
                     {result.downloadAddr ? (
                       <a 
-                        href={result.downloadAddr}
-                        target="_blank"
-                        rel="noreferrer"
+                        href={`/api/apify/download?url=${encodeURIComponent(result.downloadAddr)}`}
                         download
                         className="flex-1 relative group overflow-hidden bg-white text-black font-semibold rounded-xl py-4 px-6 flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors"
                       >
