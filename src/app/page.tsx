@@ -1,65 +1,335 @@
-import Image from "next/image";
+"use client";
 
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Download, Link2, Loader2, PlayCircle } from "lucide-react";
+
+interface VideoResult {
+  coverUrl: string;
+  downloadAddr: string;
+  duration: number;
+  definition: string;
+  format: string;
+  text: string;
+  authorName: string;
+}
 export default function Home() {
+  const [url, setUrl] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState<VideoResult | null>(null);
+  const [error, setError] = useState("");
+  const [isPasted, setIsPasted] = useState(false);
+
+  // Monitor paste events to trigger animation
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const text = e.clipboardData?.getData("text") || "";
+      if (text.includes("tiktok.com")) {
+        setIsPasted(true);
+        setUrl(text);
+        setTimeout(() => setIsPasted(false), 800);
+      }
+    };
+    window.addEventListener("paste", handlePaste);
+    return () => window.removeEventListener("paste", handlePaste);
+  }, []);
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    
+    // If empty URL and not loading, try to paste from clipboard
+    if (!url) {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text && text.includes("tiktok.com")) {
+          setUrl(text);
+          setIsPasted(true);
+          setTimeout(() => setIsPasted(false), 800);
+          // Don't return, continue to submit
+        } else {
+          setError("Please paste a valid TikTok link");
+          return;
+        }
+      } catch (_err) {
+        setError("Please enter a valid TikTok link");
+        return;
+      }
+    }
+    
+    // Use the latest url (either state or clipboard)
+    const targetUrl = url || await navigator.clipboard.readText().catch(() => "");
+
+    if (!targetUrl || !targetUrl.includes("tiktok.com")) {
+      setError("Please provide a valid TikTok URL");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+    setResult(null);
+
+    try {
+      const response = await fetch("/api/apify/tiktok", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ url: targetUrl }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to download video");
+      }
+
+      setResult(data.data);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <main className="min-h-screen bg-[#010101] flex flex-col items-center justify-center p-4 overflow-hidden relative selection:bg-[#fe0979] selection:text-white">
+      {/* Background neon blobs */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#00f2fe] rounded-full mix-blend-screen filter blur-[128px] opacity-20 animate-pulse"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#fe0979] rounded-full mix-blend-screen filter blur-[128px] opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
+
+      <div className="z-10 w-full max-w-2xl flex flex-col items-center gap-8">
+        
+        {/* Title */}
+        <div className="text-center space-y-4">
+          <motion.h1 
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, type: "spring" }}
+            className="text-5xl md:text-7xl font-black uppercase tracking-tighter"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+            <span className="glitch-text" data-text="TikTok">TikTok</span>
+            <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00f2fe] to-[#fe0979]">Saver</span>
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-gray-400 text-lg"
+          >
+            Download videos without watermark instantly
+          </motion.p>
+        </div>
+
+        {/* Input Form */}
+        <form onSubmit={handleSubmit} className="w-full relative flex flex-col items-center gap-6 mt-8">
+          
+          {/* Animated Input Field */}
+          <motion.div 
+            className="w-full relative"
+            animate={isPasted ? { 
+              scale: [1, 1.05, 0.95, 1],
+              rotate: [0, -1, 1, 0]
+            } : {}}
+            transition={{ duration: 0.4 }}
+          >
+            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+              <Link2 className="h-6 w-6 text-[#00f2fe]" />
+            </div>
+            
+            <input
+              type="text"
+              placeholder="Paste TikTok URL here..."
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              className="w-full bg-[#111111] border-2 border-transparent text-white placeholder-gray-500 rounded-2xl py-5 pl-14 pr-6 text-lg outline-none transition-all duration-300 glitch-focus focus:border-[#fe0979] shadow-lg"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            
+            {/* Input highlight on paste */}
+            <AnimatePresence>
+              {isPasted && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.2 }}
+                  className="absolute inset-0 border-2 border-[#00f2fe] rounded-2xl pointer-events-none glitch-shadow"
+                />
+              )}
+            </AnimatePresence>
+          </motion.div>
+
+          {/* Error Message */}
+          <AnimatePresence>
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="text-[#fe0979] text-sm font-medium bg-[#fe0979]/10 py-2 px-4 rounded-lg border border-[#fe0979]/20"
+              >
+                {error}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Animated Sphere Button */}
+          <motion.button
+            type="submit"
+            disabled={isLoading}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="group relative w-32 h-32 rounded-full flex items-center justify-center outline-none disabled:cursor-not-allowed mt-4"
           >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            {/* Sphere Background Elements */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#00f2fe] to-[#fe0979] opacity-80 group-hover:opacity-100 transition-opacity blur-[2px]" />
+            <div className="absolute inset-[2px] rounded-full bg-gradient-to-tl from-[#010101] to-[#111111] z-10" />
+            
+            {/* Inner glow on hover */}
+            <div className="absolute inset-1 rounded-full bg-gradient-to-br from-[#00f2fe]/20 to-[#fe0979]/20 z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+            {/* Orbiting particles */}
+            {!isLoading && (
+              <>
+                <motion.div 
+                  className="absolute w-3 h-3 bg-[#00f2fe] rounded-full z-20"
+                  animate={{ 
+                    rotate: 360,
+                    x: [45, 45],
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                />
+                <motion.div 
+                  className="absolute w-2 h-2 bg-[#fe0979] rounded-full z-20"
+                  animate={{ 
+                    rotate: -360,
+                    x: [50, 50],
+                  }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                />
+              </>
+            )}
+
+            {/* Button Content */}
+            <div className="z-30 flex flex-col items-center justify-center gap-2">
+              {isLoading ? (
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                >
+                  <Loader2 className="h-10 w-10 text-white" />
+                </motion.div>
+              ) : (
+                <>
+                  <Download className="h-8 w-8 text-white group-hover:-translate-y-1 transition-transform" />
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">Start</span>
+                </>
+              )}
+            </div>
+            
+            {/* Scanning line effect on hover */}
+            <div className="absolute inset-0 z-20 rounded-full overflow-hidden opacity-0 group-hover:opacity-100 pointer-events-none">
+              <motion.div 
+                className="w-full h-[2px] bg-white/50"
+                animate={{ y: [-64, 64] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+              />
+            </div>
+          </motion.button>
+        </form>
+
+        {/* Results Section */}
+        <AnimatePresence>
+          {result && !isLoading && (
+            <motion.div 
+              initial={{ opacity: 0, y: 50, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 50, scale: 0.9 }}
+              className="w-full bg-[#111111] rounded-3xl p-6 border border-gray-800 shadow-2xl relative overflow-hidden"
+            >
+              {/* Glossy top highlight */}
+              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              
+              <div className="flex flex-col md:flex-row gap-6">
+                {/* Video Image Cover */}
+                <div className="relative w-full md:w-48 aspect-[9/16] rounded-xl overflow-hidden bg-gray-900 flex-shrink-0 group">
+                  {result.coverUrl ? (
+                    <img 
+                      src={result.coverUrl} 
+                      alt="Video cover"
+                      className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-800">
+                      <PlayCircle className="w-12 h-12 text-gray-600" />
+                    </div>
+                  )}
+                  {result.coverUrl && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <PlayCircle className="w-12 h-12 text-white" />
+                    </div>
+                  )}
+                  {/* Glitch overlay on image */}
+                  <div className="absolute inset-0 bg-[#00f2fe] mix-blend-color opacity-0 group-hover:opacity-20 transition-opacity" />
+                </div>
+                
+                {/* Info & Download */}
+                <div className="flex flex-col justify-between flex-1 py-2">
+                  <div className="space-y-4">
+                    {result.authorName && (
+                      <p className="text-xs font-semibold text-[#00f2fe] uppercase tracking-widest">
+                        @{result.authorName}
+                      </p>
+                    )}
+                    <p className="text-sm text-gray-300 line-clamp-4 leading-relaxed">
+                      {result.text || "No description available."}
+                    </p>
+                    
+                    <div className="flex flex-wrap gap-2">
+                      {result.definition && (
+                        <span className="px-3 py-1 rounded-full bg-gray-800 text-xs text-gray-400 font-medium">
+                          {result.definition}
+                        </span>
+                      )}
+                      {result.format && (
+                        <span className="px-3 py-1 rounded-full bg-gray-800 text-xs text-gray-400 font-medium uppercase">
+                          {result.format}
+                        </span>
+                      )}
+                      {result.duration > 0 && (
+                        <span className="px-3 py-1 rounded-full bg-gray-800 text-xs text-gray-400 font-medium">
+                          {result.duration}s
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                    {result.downloadAddr ? (
+                      <a 
+                        href={result.downloadAddr}
+                        target="_blank"
+                        rel="noreferrer"
+                        download
+                        className="flex-1 relative group overflow-hidden bg-white text-black font-semibold rounded-xl py-4 px-6 flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors"
+                      >
+                        <Download className="w-5 h-5" />
+                        Download Video
+                        {/* Glitch active state */}
+                        <div className="absolute inset-0 border-2 border-transparent group-active:border-[#00f2fe] rounded-xl transition-colors pointer-events-none" />
+                      </a>
+                    ) : (
+                      <div className="flex-1 bg-gray-800/50 text-gray-400 font-medium rounded-xl py-4 px-6 flex items-center justify-center gap-2 cursor-not-allowed">
+                        Download Unavailable
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+      </div>
+    </main>
   );
 }
