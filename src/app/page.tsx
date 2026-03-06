@@ -241,6 +241,14 @@ export default function Home() {
               </div>
             )}
           </motion.button>
+
+          {/* Patience notice */}
+          {!isLoading && (
+            <p className="text-xs text-gray-600 text-center max-w-xs leading-relaxed">
+              This uses a video scraper and may take up to a minute.{" "}
+              <span className="text-gray-500">Thanks for your patience 🙏</span>
+            </p>
+          )}
         </form>
 
         {/* Results Section */}
