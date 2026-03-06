@@ -187,27 +187,8 @@ export default function Home() {
             {/* Inner glow on hover */}
             <div className="absolute inset-1 rounded-full bg-gradient-to-br from-[#00f2fe]/20 to-[#fe0979]/20 z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
 
-            {/* Orbiting particles */}
-            {!isLoading && (
-              <>
-                <motion.div 
-                  className="absolute w-3 h-3 bg-[#00f2fe] rounded-full z-20"
-                  animate={{ 
-                    rotate: 360,
-                    x: [45, 45],
-                  }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                />
-                <motion.div 
-                  className="absolute w-2 h-2 bg-[#fe0979] rounded-full z-20"
-                  animate={{ 
-                    rotate: -360,
-                    x: [50, 50],
-                  }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                />
-              </>
-            )}
+
+
 
             {/* Button Content */}
             <div className="z-30 flex flex-col items-center justify-center gap-2">
@@ -220,6 +201,10 @@ export default function Home() {
                 </motion.div>
               ) : (
                 <>
+                  <div className="flex gap-2 mb-1">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#00f2fe] shadow-[0_0_6px_#00f2fe]" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#fe0979] shadow-[0_0_6px_#fe0979]" />
+                  </div>
                   <span className="text-sm font-bold text-white uppercase tracking-wider">Get Video</span>
                 </>
               )}
