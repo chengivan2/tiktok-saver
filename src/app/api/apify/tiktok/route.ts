@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { ApifyClient } from 'apify-client';
 
 export async function POST(req: Request) {
   try {
@@ -14,8 +13,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'APIFY_API_TOKEN is missing' }, { status: 500 });
     }
 
-    const client = new ApifyClient({ token });
-
+    const actorId = "S5h7zRLfKFEr8pdj7";
     const input = {
       "commentsPerPost": 0,
       "excludePinnedPosts": false,
@@ -40,30 +38,48 @@ export async function POST(req: Request) {
       "downloadSubtitlesOptions": "NEVER_DOWNLOAD_SUBTITLES"
     };
 
-    const run = await client.actor("S5h7zRLfKFEr8pdj7").call(input);
-    const { items } = await client.dataset(run.defaultDatasetId).listItems();
+    console.log('[Apify] Starting actor run via fetch...');
+    
+    // Run actor and wait for output (up to 120s timeout)
+    const response = await fetch(
+      `https://api.apify.com/v2/acts/${actorId}/run-sync-get-dataset-items?token=${token}&timeout=110`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(input),
+      }
+    );
 
-    if (!items || items.length === 0) {
-      return NextResponse.json({ error: 'No data found' }, { status: 404 });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('[Apify] API Error:', errorData);
+      throw new Error(`Apify API responded with ${response.status}: ${JSON.stringify(errorData)}`);
     }
 
-    const raw = items[0] as Record<string, unknown>;
+    const items = await response.json();
 
-    // Log all keys to help debug
-    console.log('[Apify] Raw item keys:', Object.keys(raw));
-    console.log('[Apify] Raw item:', JSON.stringify(raw, null, 2));
+    if (!items || items.length === 0) {
+      return NextResponse.json({ error: 'No data found. The video might be private or the URL is invalid.' }, { status: 404 });
+    }
+
+    const raw = items[0] as Record<string, any>;
+
+    // Log for debugging
+    console.log('[Apify] Received item count:', items.length);
 
     // Extract fields — Apify returns flat dot-notation keys
-    const videoMeta = raw['videoMeta'] as Record<string, any> | undefined;
-    const authorMeta = raw['authorMeta'] as Record<string, any> | undefined;
+    const videoMeta = raw['videoMeta'] || {};
+    const authorMeta = raw['authorMeta'] || {};
 
-    const coverUrl: string = (raw['videoMeta.coverUrl'] as string) ?? videoMeta?.coverUrl ?? '';
-    const downloadAddrRaw: string = (raw['videoMeta.downloadAddr'] as string) ?? videoMeta?.downloadAddr ?? '';
-    const duration: number = (raw['videoMeta.duration'] as number) ?? videoMeta?.duration ?? 0;
-    const definition: string = (raw['videoMeta.definition'] as string) ?? videoMeta?.definition ?? '';
-    const format: string = (raw['videoMeta.format'] as string) ?? videoMeta?.format ?? 'mp4';
+    const coverUrl: string = (raw['videoMeta.coverUrl'] as string) ?? videoMeta.coverUrl ?? '';
+    const downloadAddrRaw: string = (raw['videoMeta.downloadAddr'] as string) ?? videoMeta.downloadAddr ?? '';
+    const duration: number = (raw['videoMeta.duration'] as number) ?? videoMeta.duration ?? 0;
+    const definition: string = (raw['videoMeta.definition'] as string) ?? videoMeta.definition ?? '';
+    const format: string = (raw['videoMeta.format'] as string) ?? videoMeta.format ?? 'mp4';
     const text: string = (raw['text'] as string) ?? '';
-    const authorName: string = authorMeta?.name ?? authorMeta?.nickName ?? (raw['authorMeta.name'] as string) ?? '';
+    const authorName: string = authorMeta.name ?? authorMeta.nickName ?? (raw['authorMeta.name'] as string) ?? '';
 
     // Apify key-value store URLs require the API token for authentication
     let downloadAddr = downloadAddrRaw;
@@ -81,11 +97,11 @@ export async function POST(req: Request) {
         format,
         text,
         authorName,
-        _raw: raw, // include raw so frontend can debug if needed
+        _raw: raw,
       }
     });
   } catch (error: unknown) {
-    console.error('Apify Actor Error:', error);
+    console.error('Apify Scraper Error:', error);
     const message = error instanceof Error ? error.message : 'Failed to scrape TikTok';
     return NextResponse.json({ error: message }, { status: 500 });
   }
