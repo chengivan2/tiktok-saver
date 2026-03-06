@@ -288,78 +288,47 @@ export default function Home() {
               {/* Glossy top highlight */}
               <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-              <div className="flex flex-col md:flex-row gap-6">
-                {/* Video Image Cover */}
-                <div className="relative w-full md:w-48 aspect-[9/16] rounded-xl overflow-hidden bg-gray-900 flex-shrink-0 group">
+              <div className="flex flex-col items-center gap-8 w-full">
+                {/* Video Image Cover - Now larger and centered */}
+                <div className="relative w-full max-w-[320px] aspect-[9/16] rounded-2xl overflow-hidden bg-gray-900 shadow-2xl group">
                   {result.coverUrl ? (
                     <img
                       src={result.coverUrl}
                       alt="Video cover"
-                      className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                      className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gray-800">
-                      <PlayCircle className="w-12 h-12 text-gray-600" />
+                      <PlayCircle className="w-20 h-20 text-gray-700" />
                     </div>
                   )}
                   {result.coverUrl && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <PlayCircle className="w-12 h-12 text-white" />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <PlayCircle className="w-16 h-16 text-white drop-shadow-lg" />
                     </div>
                   )}
                   {/* Glitch overlay on image */}
                   <div className="absolute inset-0 bg-[#00f2fe] mix-blend-color opacity-0 group-hover:opacity-20 transition-opacity" />
                 </div>
 
-                {/* Info & Download */}
-                <div className="flex flex-col justify-between flex-1 py-2">
-                  <div className="space-y-4">
-                    {result.authorName && (
-                      <p className="text-xs font-semibold text-[#00f2fe] uppercase tracking-widest">
-                        @{result.authorName}
-                      </p>
-                    )}
-                    <p className="text-sm text-gray-300 line-clamp-4 leading-relaxed">
-                      {result.text || "No description available."}
-                    </p>
-
-                    <div className="flex flex-wrap gap-2">
-                      {result.definition && (
-                        <span className="px-3 py-1 rounded-full bg-gray-800 text-xs text-gray-400 font-medium">
-                          {result.definition}
-                        </span>
-                      )}
-                      {result.format && (
-                        <span className="px-3 py-1 rounded-full bg-gray-800 text-xs text-gray-400 font-medium uppercase">
-                          {result.format}
-                        </span>
-                      )}
-                      {result.duration > 0 && (
-                        <span className="px-3 py-1 rounded-full bg-gray-800 text-xs text-gray-400 font-medium">
-                          {result.duration}s
-                        </span>
-                      )}
+                {/* Download Button - Full width in container */}
+                <div className="w-full max-w-[320px]">
+                  {result.downloadAddr ? (
+                    <a
+                      href={`/api/apify/download?url=${encodeURIComponent(result.downloadAddr)}`}
+                      download
+                      className="relative group w-full overflow-hidden bg-white text-black font-bold rounded-xl py-5 px-6 flex items-center justify-center gap-3 hover:bg-gray-100 transition-all active:scale-[0.98]"
+                    >
+                      <Download className="w-6 h-6" />
+                      Download Video
+                      {/* Glitch active state effect */}
+                      <div className="absolute inset-0 border-2 border-transparent group-active:border-[#00f2fe] rounded-xl transition-colors pointer-events-none" />
+                    </a>
+                  ) : (
+                    <div className="w-full bg-gray-800/50 text-gray-400 font-medium rounded-xl py-5 px-6 flex items-center justify-center gap-2 cursor-not-allowed">
+                      Download Unavailable
                     </div>
-                  </div>
-
-                  <div className="mt-6 flex flex-col sm:flex-row gap-3">
-                    {result.downloadAddr ? (
-                      <a
-                        href={`/api/apify/download?url=${encodeURIComponent(result.downloadAddr)}`}
-                        download
-                        className="flex-1 relative group overflow-hidden bg-white text-black font-semibold rounded-xl py-4 px-6 flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors"
-                      >
-                        <Download className="w-5 h-5" />
-                        Download Video
-                        {/* Glitch active state */}
-                        <div className="absolute inset-0 border-2 border-transparent group-active:border-[#00f2fe] rounded-xl transition-colors pointer-events-none" />
-                      </a>
-                    ) : (
-                      <div className="flex-1 bg-gray-800/50 text-gray-400 font-medium rounded-xl py-4 px-6 flex items-center justify-center gap-2 cursor-not-allowed">
-                        Download Unavailable
-                      </div>
-                    )}
-                  </div>
+                  )}
                 </div>
               </div>
             </motion.div>
