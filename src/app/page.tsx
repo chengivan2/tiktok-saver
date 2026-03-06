@@ -15,10 +15,22 @@ interface VideoResult {
 }
 export default function Home() {
   const [url, setUrl] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<VideoResult | null>(null);
-  const [error, setError] = useState("");
   const [isPasted, setIsPasted] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
+
+  const loadingMessages = ["getting video", "hang tight", "hold on", "just a minute"];
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isLoading) {
+      interval = setInterval(() => {
+        setLoadingStep((prev) => (prev + 1) % loadingMessages.length);
+      }, 1500);
+    } else {
+      setLoadingStep(0);
+    }
+    return () => clearInterval(interval);
+  }, [isLoading, loadingMessages.length]);
 
   // Monitor paste events to trigger animation
   useEffect(() => {
@@ -215,8 +227,18 @@ export default function Home() {
                     transition={{ duration: 0.9, repeat: Infinity, ease: "linear" }}
                   />
                   <span className="text-sm font-bold text-white uppercase tracking-wider whitespace-nowrap">
-                    Getting{" "}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00f2fe] to-[#fe0979]">Video</span>
+                    {loadingMessages[loadingStep].split(" ").map((word, idx) => (
+                      <span key={idx}>
+                        {word === "video" ? (
+                          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00f2fe] to-[#fe0979]">
+                            {word}
+                          </span>
+                        ) : (
+                          word
+                        )}
+                        {idx < loadingMessages[loadingStep].split(" ").length - 1 ? " " : ""}
+                      </span>
+                    ))}
                     ...
                   </span>
                 </>
