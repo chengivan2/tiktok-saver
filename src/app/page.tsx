@@ -220,8 +220,7 @@ export default function Home() {
                 </motion.div>
               ) : (
                 <>
-                  <Download className="h-8 w-8 text-white group-hover:-translate-y-1 transition-transform" />
-                  <span className="text-xs font-bold text-white uppercase tracking-wider">Start</span>
+                  <span className="text-sm font-bold text-white uppercase tracking-wider">Get Video</span>
                 </>
               )}
             </div>
