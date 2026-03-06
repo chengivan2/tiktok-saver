@@ -62,6 +62,19 @@ export default function RootLayout({
             <p className="text-xs text-gray-700">
               © {new Date().getFullYear()} TikTok Saver. Not affiliated with TikTok.
             </p>
+
+            {/* Credit */}
+            <p className="text-xs text-gray-700">
+              Made with ❤️ by{" "}
+              <a
+                href="https://ivanthedev.pro"
+                target="_blank"
+                rel="noreferrer"
+                className="text-gray-500 hover:text-[#00f2fe] transition-colors"
+              >
+                Ivan the Dev
+              </a>
+            </p>
           </div>
         </footer>
       </body>
