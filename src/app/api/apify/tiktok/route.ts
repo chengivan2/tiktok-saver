@@ -54,14 +54,16 @@ export async function POST(req: Request) {
     console.log('[Apify] Raw item:', JSON.stringify(raw, null, 2));
 
     // Extract fields — Apify returns flat dot-notation keys
-    const coverUrl: string = raw['videoMeta.coverUrl'] ?? raw['videoMeta']?.coverUrl ?? '';
-    const downloadAddrRaw: string = raw['videoMeta.downloadAddr'] ?? raw['videoMeta']?.downloadAddr ?? '';
-    const duration: number = raw['videoMeta.duration'] ?? raw['videoMeta']?.duration ?? 0;
-    const definition: string = raw['videoMeta.definition'] ?? raw['videoMeta']?.definition ?? '';
-    const format: string = raw['videoMeta.format'] ?? raw['videoMeta']?.format ?? 'mp4';
-    const text: string = raw['text'] ?? '';
-    const authorMeta = raw['authorMeta'] ?? {};
-    const authorName: string = authorMeta?.name ?? authorMeta?.nickName ?? raw['authorMeta.name'] ?? '';
+    const videoMeta = raw['videoMeta'] as Record<string, any> | undefined;
+    const authorMeta = raw['authorMeta'] as Record<string, any> | undefined;
+
+    const coverUrl: string = (raw['videoMeta.coverUrl'] as string) ?? videoMeta?.coverUrl ?? '';
+    const downloadAddrRaw: string = (raw['videoMeta.downloadAddr'] as string) ?? videoMeta?.downloadAddr ?? '';
+    const duration: number = (raw['videoMeta.duration'] as number) ?? videoMeta?.duration ?? 0;
+    const definition: string = (raw['videoMeta.definition'] as string) ?? videoMeta?.definition ?? '';
+    const format: string = (raw['videoMeta.format'] as string) ?? videoMeta?.format ?? 'mp4';
+    const text: string = (raw['text'] as string) ?? '';
+    const authorName: string = authorMeta?.name ?? authorMeta?.nickName ?? (raw['authorMeta.name'] as string) ?? '';
 
     // Apify key-value store URLs require the API token for authentication
     let downloadAddr = downloadAddrRaw;
