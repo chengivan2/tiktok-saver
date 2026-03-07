@@ -1,6 +1,6 @@
 # TikTok Saver
 
-TikTok Saver is a premium, high-performance web application designed for downloading TikTok videos without watermarks.
+TikTok Saver is a web application designed for downloading TikTok videos without watermarks.
 
 The application leverages a robust, zero-dependency backend integration with the Apify API to ensure maximum stability and speed. 
 
