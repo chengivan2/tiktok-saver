@@ -1,4 +1,8 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TikTok Saver
+
+TikTok Saver is a premium, high-performance web application designed for downloading TikTok videos without watermarks.
+
+The application leverages a robust, zero-dependency backend integration with the Apify API to ensure maximum stability and speed. 
 
 ## Getting Started
 
